@@ -10,8 +10,14 @@ import (
 	"strings"
 )
 
+func Load(day int) []int {
+	fileName := fmt.Sprintf("./input_%v.txt", 1)
+	lines := loadInput(fileName)
+	return convertToInt(lines)
+}
+
 // TODO add oauth client
-func loadInputViaGET(day int) {
+func loadInputViaGET(day int) string {
 	url := fmt.Sprintf("https://adventofcode.com/2019/day/%v/input", day)
 	fmt.Printf("fetching %s ...\n", url)
 	resp, err := http.Get(url)
@@ -27,16 +33,10 @@ func loadInputViaGET(day int) {
 		log.Fatal("Could not read from", url)
 	}
 	bodyString := string(bodyBytes)
-	fmt.Println(bodyString)
+	return bodyString
 }
 
-func Load(day int) []int {
-	fileName := fmt.Sprintf("./input_%v.txt", day)
-	lines := loadInput(fileName)
-	return convertToInt(lines)
-}
-
-func loadInput(filename string) []string {
+func loadInput(fileName string) []string {
 	fp, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal("Could not fetch from", fileName)
@@ -55,13 +55,11 @@ func convertToInt(lines []string) []int {
 	var inputArray = []int{}
 
 	for _, entry := range lines {
-		fmt.Println(entry)
 		intValue, err := strconv.Atoi(strings.TrimSpace(entry))
 		if err != nil {
 			panic(err)
 		}
 		inputArray = append(inputArray, intValue)
 	}
-	fmt.Println(inputArray)
 	return inputArray
 }
