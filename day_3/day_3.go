@@ -46,23 +46,8 @@ func walk(moves []Coord) []Coord {
 	return visitedCoords
 }
 
-func main() {
-	var day = 3
-	fmt.Println("==========")
-	fmt.Println("Day ", day)
-	fmt.Println("==========")
-	words := aoc2019_shared.LoadStr(day)
-	//1
-	coords1 := walk(parseMoves(words[0]))
-	fmt.Printf("FIRST GUY WALKS %v\n", coords1)
-
-	coords2 := walk(parseMoves(words[1]))
-	fmt.Printf("SECOND GUY WALKS: %t %v\n", coords2, coords2)
-
-	fmt.Printf("Answer 1: %v\n")
-
+func initBoard(stitched []Coord) [][]int {
 	// create rightly sized board
-	stitched := append(coords1, coords2...)
 
 	minX, maxX, minY, maxY := 0, 0, 0, 0
 	for _, coord := range stitched {
@@ -82,10 +67,39 @@ func main() {
 
 	sizeX := maxX - minX + 1
 	sizeY := maxY - minY + 1
-	fmt.Printf("Building board %v x %v", sizeX, sizeY)
+	fmt.Printf("Building board %v x %v\n", sizeX, sizeY)
 
+	board := make([][]int, sizeY)
+	for i := range board {
+		board[i] = make([]int, sizeX)
+	}
+
+	return board
+}
+
+func main() {
+	var day = 3
+	fmt.Println("==========")
+	fmt.Println("Day ", day)
+	fmt.Println("==========")
+	words := aoc2019_shared.LoadStr(day)
+	//1
+	coords1 := walk(parseMoves(words[0]))
+	fmt.Printf("FIRST GUY WALKS %v\n", coords1)
+
+	coords2 := walk(parseMoves(words[1]))
+	fmt.Printf("SECOND GUY WALKS: %v\n", coords2, coords2)
+
+	stitched := append(coords1, coords2...)
+	board := initBoard(stitched)
+
+	// 1st walks
+	// for i, move := range coords1 {
+
+	// }
+
+	fmt.Printf("Answer 1: %v\n", board)
 	// 2
-
 	fmt.Printf("Answer 2: %v\n")
 
 }
