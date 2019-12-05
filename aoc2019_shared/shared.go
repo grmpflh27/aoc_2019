@@ -16,6 +16,19 @@ func Load(day int, sep string) []int {
 	return convertToInt(lines)
 }
 
+func LoadStr(day int) [][]string {
+	fileName := fmt.Sprintf("./input_%v.txt", day)
+	lines := loadInput(fileName, "\n")
+
+	fmt.Println("len lines", len(lines))
+	final := make([][]string, 3)
+	for i, line := range lines {
+		words := strings.Split(line, ",")
+		final[i] = words
+	}
+	return final
+}
+
 // TODO add oauth client
 func loadInputViaGET(day int) string {
 	url := fmt.Sprintf("https://adventofcode.com/2019/day/%v/input", day)
