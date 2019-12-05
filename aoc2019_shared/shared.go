@@ -10,9 +10,9 @@ import (
 	"strings"
 )
 
-func Load(day int) []int {
-	fileName := fmt.Sprintf("./input_%v.txt", 1)
-	lines := loadInput(fileName)
+func Load(day int, sep string) []int {
+	fileName := fmt.Sprintf("./input_%v.txt", day)
+	lines := loadInput(fileName, sep)
 	return convertToInt(lines)
 }
 
@@ -36,7 +36,7 @@ func loadInputViaGET(day int) string {
 	return bodyString
 }
 
-func loadInput(fileName string) []string {
+func loadInput(fileName string, sep string) []string {
 	fp, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal("Could not fetch from", fileName)
@@ -47,7 +47,7 @@ func loadInput(fileName string) []string {
 		log.Fatal("Could not read from", fileName)
 	}
 	bodyString := string(bodyBytes)
-	lines := strings.Split(bodyString, "\n")
+	lines := strings.Split(bodyString, sep)
 	return lines
 }
 

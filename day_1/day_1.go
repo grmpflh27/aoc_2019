@@ -15,10 +15,10 @@ func main() {
 	fmt.Println("==========")
 	fmt.Println("Day ", day)
 	fmt.Println("==========")
-	masses := aoc2019_shared.Load(day)
+	masses := aoc2019_shared.Load(day, "\n")
 
 	//1
-	
+
 	sumModules := 0
 	for _, mass := range masses {
 		cur := transform(mass)
@@ -38,6 +38,6 @@ func main() {
 			sumFuels += mass
 		}
 	}
-	fmt.Printf("Answer 2: %v\n", sumModules)
+	fmt.Printf("Answer 2: %v\n", sumFuels)
 
 }
