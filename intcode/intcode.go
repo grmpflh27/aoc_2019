@@ -22,6 +22,9 @@ const (
 	EQUALS        SupportedOpCodes = 8
 )
 
+var InputBuffer []int
+var OutputBuffer int
+
 const (
 	Position  Mode = 0
 	Immediate Mode = 1
@@ -79,7 +82,7 @@ func setTarget(value int, mode Mode, idx int, input []int) {
 	}
 }
 
-func (instr *Instruction) Process(input []int) int {
+func (instr *Instruction) Process(input []int) (int, error) {
 	nextIdx := 0
 	switch instr.opscode {
 	case ADD, MUL:
@@ -95,16 +98,29 @@ func (instr *Instruction) Process(input []int) int {
 			setTarget(value, instr.thirdMode, instr.idx+3, input)
 		}
 	case INPUT:
-		fmt.Println("Please provide number")
 		var value int
-		fmt.Scanf("%d", &value)
+		if len(InputBuffer) != 0 {
+			value = InputBuffer[0]
+			//fmt.Println("received ", value, "from InputBuffer")
+			InputBuffer = InputBuffer[1:]
+		} else {
+			fmt.Println("Please provide number")
+			fmt.Scanf("%d", &value)
+		}
 		setTarget(value, instr.firstMode, instr.idx+1, input)
 		nextIdx = instr.idx + 2
 	case OUTPUT:
 		outputValue := getParam(instr.firstMode, instr.idx+1, input)
 		fmt.Printf("Output at %v = %v\n", instr.idx+1, outputValue)
+		InputBuffer = append([]int{outputValue}, InputBuffer...)
+		OutputBuffer = outputValue
 		nextIdx = instr.idx + 2
-	// comment those 3 cases out for solution 1
+		if len(InputBuffer) <= 1 {
+			return nextIdx, fmt.Errorf("Misusing error to bubble up")
+		} else {
+			InputBuffer[0], InputBuffer[1] = InputBuffer[1], InputBuffer[0]
+		}
+	// comment the following 3 cases out for solution 1
 	case JUMP_IF_TRUE, JUMP_IF_FALSE:
 		firstParam := getParam(instr.firstMode, instr.idx+1, input)
 		jumpValue := getParam(instr.secondMode, instr.idx+2, input)
@@ -139,5 +155,5 @@ func (instr *Instruction) Process(input []int) int {
 			}
 		}
 	}
-	return nextIdx
+	return nextIdx, nil
 }

@@ -21,7 +21,7 @@ func main() {
 	for curIdx < endIdx {
 		opsCode := input[curIdx]
 		instr := intcode.ParseInstruction(curIdx, opsCode)
-		nextIdx := instr.Process(input)
+		nextIdx, _ := instr.Process(input)
 		curIdx = nextIdx
 	}
 
