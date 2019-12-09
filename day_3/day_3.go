@@ -251,7 +251,7 @@ func main() {
 	fmt.Println("==========")
 	fmt.Println("Day ", day)
 	fmt.Println("==========")
-	words := aoc2019_shared.LoadStr(day)
+	words := aoc2019_shared.LoadStr(day, ",")
 	//1
 	moves1 := parseMoves(words[0])
 	moves2 := parseMoves(words[1])

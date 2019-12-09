@@ -16,14 +16,12 @@ func Load(day int, sep string) []int {
 	return convertToInt(lines)
 }
 
-func LoadStr(day int) [][]string {
+func LoadStr(day int, sep string) [][]string {
 	fileName := fmt.Sprintf("./input_%v.txt", day)
 	lines := loadInput(fileName, "\n")
-
-	fmt.Println("len lines", len(lines))
-	final := make([][]string, 3)
+	final := make([][]string, len(lines))
 	for i, line := range lines {
-		words := strings.Split(line, ",")
+		words := strings.Split(line, sep)
 		final[i] = words
 	}
 	return final
