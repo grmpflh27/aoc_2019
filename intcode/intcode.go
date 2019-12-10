@@ -111,7 +111,7 @@ func (instr *Instruction) Process(input []int) (int, error) {
 		nextIdx = instr.idx + 2
 	case OUTPUT:
 		outputValue := getParam(instr.firstMode, instr.idx+1, input)
-		fmt.Printf("Output at %v = %v\n", instr.idx+1, outputValue)
+		// fmt.Printf("Output at %v = %v\n", instr.idx+1, outputValue)
 		InputBuffer = append([]int{outputValue}, InputBuffer...)
 		OutputBuffer = outputValue
 		nextIdx = instr.idx + 2
