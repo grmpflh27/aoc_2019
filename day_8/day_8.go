@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 const (
@@ -61,4 +62,33 @@ func main() {
 	TwoCnt := countRune(byLayer[minZeroCntLayerIndex], '2')
 
 	fmt.Println("Answer 1:", OneCnt*TwoCnt)
+
+	// stack by layer
+	const (
+		BLACK       = "0"
+		WHITE       = "1"
+		TRANSPARENT = "2"
+	)
+
+	pixelIdx := 0
+	decodedImg := make([]string, LAYERLENGTH)
+	for pixelIdx < LAYERLENGTH {
+		for layerId := 0; layerId < numberOfLayers; layerId++ {
+			curPixel := string(byLayer[layerId][pixelIdx])
+			if curPixel != TRANSPARENT {
+				decodedImg[pixelIdx] = curPixel
+				break
+			}
+		}
+		pixelIdx++
+	}
+
+	fmt.Println("Answer 2 - decoded image")
+	decoded := strings.Join(decodedImg, "")
+	for rowCnt := 0; rowCnt < HEIGHT; rowCnt++ {
+		row := decoded[rowCnt*WIDTH : (rowCnt+1)*WIDTH]
+		row = strings.Replace(row, "1", "█", -1)
+		row = strings.Replace(row, "0", " ", -1)
+		fmt.Println(row)
+	}
 }
