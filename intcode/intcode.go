@@ -11,23 +11,27 @@ type Mode int
 type SupportedOpCodes int
 
 const (
-	HALT          SupportedOpCodes = 99
-	ADD           SupportedOpCodes = 1
-	MUL           SupportedOpCodes = 2
-	INPUT         SupportedOpCodes = 3
-	OUTPUT        SupportedOpCodes = 4
-	JUMP_IF_TRUE  SupportedOpCodes = 5
-	JUMP_IF_FALSE SupportedOpCodes = 6
-	LESS_THAN     SupportedOpCodes = 7
-	EQUALS        SupportedOpCodes = 8
+	HALT                 SupportedOpCodes = 99
+	ADD                  SupportedOpCodes = 1
+	MUL                  SupportedOpCodes = 2
+	INPUT                SupportedOpCodes = 3
+	OUTPUT               SupportedOpCodes = 4
+	JUMP_IF_TRUE         SupportedOpCodes = 5
+	JUMP_IF_FALSE        SupportedOpCodes = 6
+	LESS_THAN            SupportedOpCodes = 7
+	EQUALS               SupportedOpCodes = 8
+	ADJUST_RELATIVE_BASE SupportedOpCodes = 9
 )
 
 var InputBuffer []int
 var OutputBuffer int
 
+var RelativeBase int = 0
+
 const (
 	Position  Mode = 0
 	Immediate Mode = 1
+	Relative  Mode = 2
 )
 
 type Instruction struct {
@@ -36,6 +40,10 @@ type Instruction struct {
 	firstMode  Mode
 	secondMode Mode
 	thirdMode  Mode
+}
+
+func (i Instruction) String() string {
+	return fmt.Sprintf("Instruction (@ %v): opscode %v | firstMode %v | secondMode %v | thirdMode %v)", i.idx, i.opscode, i.firstMode, i.secondMode, i.thirdMode)
 }
 
 func ParseInstruction(idx int, compountOpscode int) Instruction {
@@ -67,10 +75,11 @@ func splitIntoDigitsAndPad(opscode int) []int {
 
 func getParam(mode Mode, idx int, input []int) int {
 	if mode == Immediate {
-		ret := input[idx]
-		return ret
-	} else {
+		return input[idx]
+	} else if mode == Position {
 		return input[input[idx]]
+	} else {
+		return input[input[idx]+RelativeBase]
 	}
 }
 
@@ -111,7 +120,7 @@ func (instr *Instruction) Process(input []int) (int, error) {
 		nextIdx = instr.idx + 2
 	case OUTPUT:
 		outputValue := getParam(instr.firstMode, instr.idx+1, input)
-		// fmt.Printf("Output at %v = %v\n", instr.idx+1, outputValue)
+		fmt.Printf("Output at %v = %v\n", instr.idx+1, outputValue)
 		InputBuffer = append([]int{outputValue}, InputBuffer...)
 		OutputBuffer = outputValue
 		nextIdx = instr.idx + 2
@@ -154,6 +163,12 @@ func (instr *Instruction) Process(input []int) (int, error) {
 				setTarget(0, instr.thirdMode, instr.idx+3, input)
 			}
 		}
+	case ADJUST_RELATIVE_BASE:
+		baseAdjustment := getParam(instr.firstMode, instr.idx+1, input)
+		RelativeBase += baseAdjustment
+		nextIdx = instr.idx + 2
+	case HALT:
+		return nextIdx, fmt.Errorf("StopIteration")
 	}
 	return nextIdx, nil
 }
