@@ -49,7 +49,6 @@ func main() {
 	maxIdx := 0
 	for i, this := range belt.Astroids {
 		viewAngles := this.GetViewingAngles()
-
 		others := getOthers(belt, i)
 		curCnt := setViewableAstroidCnt(&this, others, viewAngles)
 
@@ -58,6 +57,10 @@ func main() {
 			maxIdx = i
 		}
 	}
-	fmt.Println("Answer 1:", maxCnt, "from", belt.Astroids[maxIdx].Coordinate)
 
+	station := belt.Astroids[maxIdx]
+	fmt.Println("Answer 1:", maxCnt, "from", station.Coordinate)
+
+	others := getOthers(belt, maxIdx)
+	belt.BlastAll(station, others)
 }

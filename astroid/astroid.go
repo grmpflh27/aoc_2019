@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -111,14 +112,34 @@ func (a Astroid) GetViewingAngles() [][]float64 {
 		for col := 0; col < a.Field.width(); col++ {
 			xDelta := col - a.Coordinate.X
 			yDelta := row - a.Coordinate.Y
-			viewDeg := math.Atan2(float64(yDelta), float64(xDelta)) * 180 / math.Pi
+			viewDeg := math.Atan2(float64(yDelta), float64(xDelta))*180/math.Pi + 90
+			// adjust that zero degree is at 12 o'clock [0..360]
+			if viewDeg < 0 {
+				viewDeg = 360 + viewDeg
+			}
 			// round to remove float imprecision
 			curRowAngles[col] = math.Round(viewDeg*100) / 100
 		}
 		viewAngles[row] = curRowAngles
 	}
-
 	return viewAngles
+}
+
+func (a Astroid) GetDistances() [][]float64 {
+	distances := make([][]float64, a.Field.height())
+	for row := 0; row < a.Field.height(); row++ {
+		distanceRow := make([]float64, a.Field.width())
+		for col := 0; col < a.Field.width(); col++ {
+			xDelta := col - a.Coordinate.X
+			yDelta := row - a.Coordinate.Y
+			distance := math.Sqrt(math.Pow(float64(yDelta), 2) + math.Pow(float64(xDelta), 2))
+			// round to remove float imprecision
+			distanceRow[col] = distance
+		}
+		distances[row] = distanceRow
+	}
+
+	return distances
 }
 
 func (a Astroid) MarkSameViewingAngleAsShadowed(viewAngles [][]float64, curViewAngle float64) {
@@ -129,4 +150,95 @@ func (a Astroid) MarkSameViewingAngleAsShadowed(viewAngles [][]float64, curViewA
 			}
 		}
 	}
+}
+
+type BlastTarget struct {
+	coord    Coord
+	angle    float64
+	distance float64
+}
+
+func (b BlastTarget) String() string {
+	return fmt.Sprintf("Angle : %v", b.angle)
+}
+
+func buildTargets(station Astroid, others []Astroid) []BlastTarget {
+	viewAngles := station.GetViewingAngles()
+	distances := station.GetDistances()
+	var targets []BlastTarget
+
+	// now filter astroid positions
+	for _, o := range others {
+		blastIt := BlastTarget{
+			o.Coordinate,
+			viewAngles[o.Coordinate.Y][o.Coordinate.X],
+			distances[o.Coordinate.Y][o.Coordinate.X],
+		}
+		targets = append(targets, blastIt)
+	}
+	return targets
+}
+
+func sortByViewAnglesAndDistance(targets []BlastTarget) {
+	sort.Slice(targets, func(i, j int) bool {
+		if targets[i].angle < targets[j].angle {
+			return true
+		}
+		if targets[i].angle > targets[j].angle {
+			return false
+		}
+		return targets[i].distance < targets[j].distance
+	})
+}
+
+func recordBlast(targets []BlastTarget, blastAngle float64, blasted []BlastTarget) ([]BlastTarget, float64, []BlastTarget) {
+	// first check if there are more than one target with same angle
+	var targetsSameAngleIdxs []int
+	for i, t := range targets {
+		if t.angle == blastAngle {
+			targetsSameAngleIdxs = append(targetsSameAngleIdxs, i)
+		}
+	}
+
+	blastIdx := targetsSameAngleIdxs[0]
+	blasted = append(blasted, targets[blastIdx])
+	targets = append(targets[:blastIdx], targets[blastIdx+1:]...)
+
+	// now progress to next angle (jumping over the ones with same angle)
+	nextIdx := blastIdx + len(targetsSameAngleIdxs) - 1
+
+	if nextIdx > len(targets)-1 {
+		nextIdx -= len(targets)
+	}
+
+	if len(targets) == 1 {
+		nextIdx = 0
+	}
+
+	return targets, targets[nextIdx].angle, blasted
+}
+
+func (a AsteroidBelt) BlastAll(station Astroid, others []Astroid) {
+	targets := buildTargets(station, others)
+	sortByViewAnglesAndDistance(targets)
+
+	// find min viewing angle
+	blastAngle := 360.
+	for _, t := range targets {
+		if t.angle >= 0 && t.angle < blastAngle {
+			blastAngle = t.angle
+		}
+	}
+
+	var blasted []BlastTarget
+
+	iterCnt := 1
+	for len(targets) > 1 {
+		targets, blastAngle, blasted = recordBlast(targets, blastAngle, blasted)
+		fmt.Println(iterCnt, "blasted", blasted[len(blasted)-1].coord, "at", blasted[len(blasted)-1].angle)
+		iterCnt++
+	}
+
+	answer2 := blasted[199].coord.X*100 + blasted[199].coord.Y
+	fmt.Println("Answer 2", answer2)
 }
