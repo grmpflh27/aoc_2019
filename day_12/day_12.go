@@ -33,6 +33,7 @@ func (m Moon) String() string {
 func parse() [4]Moon {
 	re := regexp.MustCompile(`<x=(-?\d+),\sy=(-?\d+),\sz=(-?\d+)>`)
 	fp, _ := os.Open("./input_12.txt")
+	defer fp.Close()
 
 	scanner := bufio.NewScanner(fp)
 
@@ -96,6 +97,76 @@ func (m Moon) calcPotentialEnergy() int {
 	return pot * kin
 }
 
+func getStepsOfFullOrbit(moons [4]Moon) {
+
+	xs := make(map[string]bool)
+	ys := make(map[string]bool)
+	zs := make(map[string]bool)
+
+	returnX, returnY, returnZ := 0, 0, 0
+	t := 0
+
+	for {
+		applyGravity(&moons)
+		applyVelocity(&moons)
+
+		if returnX == 0 {
+			x := fmt.Sprintf("%v %v %v %v %v %v %v %v", moons[0].pos.X, moons[1].pos.X, moons[2].pos.X, moons[3].pos.X,
+				moons[0].v.X, moons[1].v.X, moons[2].v.X, moons[3].v.X)
+			if xs[x] {
+				returnX = t
+			}
+			xs[x] = true
+		}
+
+		if returnY == 0 {
+			y := fmt.Sprintf("%v %v %v %v %v %v %v %v", moons[0].pos.Y, moons[1].pos.Y, moons[2].pos.Y, moons[3].pos.Y,
+				moons[0].v.Y, moons[1].v.Y, moons[2].v.Y, moons[3].v.Y)
+			if ys[y] {
+				returnY = t
+			}
+			ys[y] = true
+		}
+
+		if returnZ == 0 {
+			z := fmt.Sprintf("%v %v %v %v %v %v %v %v", moons[0].pos.Z, moons[1].pos.Z, moons[2].pos.Z, moons[3].pos.Z,
+				moons[0].v.Z, moons[1].v.Z, moons[2].v.Z, moons[3].v.Z)
+			if zs[z] {
+				returnZ = t
+			}
+			zs[z] = true
+		}
+
+		if returnX != 0 && returnY != 0 && returnZ != 0 {
+			break
+		}
+		t++
+	}
+	fmt.Println("Answer 2: ", LCM(returnX, returnY, returnZ))
+}
+
+// 'borrowed' from https://siongui.github.io/2017/06/03/go-find-lcm-by-gcd/
+// greatest common divisor (GCD) via Euclidean algorithm
+func GCD(a, b int) int {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+// find Least Common Multiple (LCM) via GCD
+func LCM(a, b int, integers ...int) int {
+	result := a * b / GCD(a, b)
+
+	for i := 0; i < len(integers); i++ {
+		result = LCM(result, integers[i])
+	}
+
+	return result
+}
+
 func main() {
 
 	var day = 12
@@ -103,6 +174,7 @@ func main() {
 	fmt.Println("Day ", day)
 	fmt.Println("==========")
 
+	// --- PART 1 ----
 	totalTime := flag.Int("time", 10, "simulation time")
 	flag.Parse()
 	moons := parse()
@@ -120,4 +192,10 @@ func main() {
 		totalEnergy += m.calcPotentialEnergy()
 	}
 	fmt.Println("TOTAL ENERGY", totalEnergy)
+
+	// --- PART 2 ----
+
+	initMoons := parse()
+	getStepsOfFullOrbit(initMoons)
+
 }
